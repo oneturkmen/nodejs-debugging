@@ -1,0 +1,10 @@
+version: "3"          # use version Compose version 3
+services:             # our services 
+  api:
+    image: node       # use latest node image
+    working_dir: /app # set the working directory to /app
+    volumes:          # volumes are there to let us persist data when containers are exited
+      - .:/app        # bind a current directory of the host to the /app directory in the container
+    ports:
+      - 3000:3000     # bind port 3000 on host to port 3000 on container
+    command: "npm run build-and-start"

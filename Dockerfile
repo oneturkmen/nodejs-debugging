@@ -1,5 +1,5 @@
-# use Node.js version 9
-FROM node:9
+# use Node.js version latest
+FROM node
 
 # create app folder in the container (not the host)
 RUN mkdir -p /app       
@@ -8,7 +8,10 @@ RUN mkdir -p /app
 WORKDIR /app
 
 # copies everything from the current directory into the /app folder inside the container (COPY <host_dir> <container_dir>)
-COPY . /app             
+COPY package.json /app
 
 # runs "npm install" command inside the container
-RUN ["npm", "install"] 
+RUN ["npm", "install"]
+
+# copy the node_modules and the rest of the files into /app
+COPY . /app
