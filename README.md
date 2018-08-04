@@ -91,31 +91,31 @@ So, what have we done? We wrote a sequence of instructions which defines your im
 Now, let's create the `docker-compose.yml` file where we will define set the configurations (env variables, volumes, networks, etc.) for the services in our architecture. **Note** that here we are not going to define a Postgre service, just Mongo and Node.js API. Here is an example of how to define these:
 
 ```yaml
-version: "3"                # use version Compose version 3
-services:                   # our services 
-    api:
-        build: .            # use Dockerfile from current directory at build time
-        volumes:            # volumes are there to let us persist data when containers are exited
-            - .:/app        # bind a current directory of the host to the /app directory in the container
-        depends_on:
-            - database      # not started until "example-mongo" service is started
-        networks:           # let's us be discoverable and reachable by other services in the same network
-            - api-net       # join "api-net" network
-        ports:
-            - 3000:3000     # bind port 3000 on host to port 3000 on container
-        command: npm run start  # execute the following command when the image is running, e.g. run the Node server
+version: "3"          # use version Compose version 3
+services:             # our services 
+  api:
+    build: .          # use Dockerfile from current directory at build time
+    volumes:          # volumes are there to let us persist data when containers are exited
+      - .:/app        # bind a current directory of the host to the /app directory in the container
+    depends_on:
+      - database      # not started until "example-mongo" service is started
+    networks:         # let's us be discoverable and reachable by other services in the same network
+      - api-net       # join "api-net" network
+    ports:
+      - 3000:3000     # bind port 3000 on host to port 3000 on container
+    command: npm run start  # execute the following command when the image is running, e.g. run the Node server
     
-    database:
-        image: mongo        # if tag is not specified, gets latest image (e.g. MongoDB image)
-        environment:
-            - MONGO_INITDB_ROOT_USERNAME=admin      # set the root username to "admin"
-            - MONGO_INITDB_ROOT_PASSWORD=admin123   # set the root password to "admin123"
-        volumes:
-            - ./data:/data/db   # persist data from mongodb
-        networks:
-            - api-net       # makes "database" reachable (via hostname) by other services in the same network
-        ports:
-            - "27017:27017" # bind port
+  database:
+    image: mongo      # if tag is not specified, gets latest image (e.g. MongoDB image)
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin      # set the root username to "admin"
+      - MONGO_INITDB_ROOT_PASSWORD=admin123   # set the root password to "admin123"
+    volumes:
+      - ./data:/data/db   # persist data from mongodb
+    networks:
+      - api-net       # makes "database" reachable (via hostname) by other services in the same network
+    ports:
+      - "27017:27017" # bind port
 ```
 
 Note that you could leverage *links* as well, though I personally love *networks* because of their simplicity: you can reach other services in the same network just by using their service name (in our case, they are `api` or `database`). One could also define `working directory` inside the compose file (by using `working_dir` field) instead of specifying it in the Dockerfile.
