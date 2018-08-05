@@ -1,4 +1,4 @@
-# Debugging TypeScript using Docker containers and VSCode
+# Debugging dockerized Node.js app using Typescript and VS Code
 
 #### Prerequisites
 
