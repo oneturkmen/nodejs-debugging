@@ -23,7 +23,9 @@ Clone this project and let's get started!
 
 Imagine that you are working on a computer where Node.js is not installed. One way to proceed with initialization of your project is to install Node.js locally using your package manager (e.g. apt) and then proceed with `npm init`. However, there is a cooler, more portable, and more cross-platform way of doing this; where, no version conflicts occur, no manual explicit configurations are needed to be set up with changing OS environment, etc. In other words, ~~heaven~~ Docker!
 
-Docker is a container management service. The keywords of Docker are **develop**, **ship** and **run** anywhere. The whole idea of Docker is for developers to easily develop applications, ship them into containers which can then be deployed anywhere. What a brilliant and lovely idea for the DevOps workflow. I assume you have latest Docker installed. Docker uses images (check the definition above) to run containers which are, roughly saying, isolated processes that share the same OS kernel. Note that that Docker containers are **NOT** magical, lightweight VMs! If you are interested how Docker Containers work behind the scenes, [here you go! (Talk given by Jérôme Petazzoni at DockerCon EU)](https://www.youtube.com/watch?v=sK5i-N34im8)
+Docker is a container management service. The keywords of Docker are **develop**, **ship** and **run** anywhere. The whole idea of Docker is for developers to easily develop applications, ship them into containers which can then be deployed anywhere. What a brilliant and lovely idea for the DevOps workflow. 
+
+I assume you have latest Docker installed. Docker uses images (check the definition above) to run containers which are, roughly saying, isolated processes that share the same OS kernel. Note that that Docker containers are **NOT** magical, lightweight VMs! If you are interested how Docker Containers work behind the scenes, [here you go! (Talk given by Jérôme Petazzoni at DockerCon EU)](https://www.youtube.com/watch?v=sK5i-N34im8)
 
 ![Docker container is not VM](http://cdn.meme.am/instances/53646903.jpg)
 
@@ -48,13 +50,13 @@ Congratulations! So far, you have managed to initialize a Node.js project using 
 
 ### Dockerfile and docker-compose
 
-If your app uses 2 database services, e.g. MongoDB and PostgreSQL, and you have Node.js API running which interacts with those DBs, then you already have at least 3 services. If you want to dockerize your multi-service application, then you have to define 3 images for those services using Dockerfiles (one per service).
+If your app uses MongoDB as a database service, you already have 2 services interacting (i.e. API <-> DB). If you want to dockerize your multi-service application, then you have to define 2 images for those services using Dockerfiles (one per service).
 
-Docker-compose is another Docker tool which lets us manage multi-container applications. With Docker-compose, it is simpler to manage and scale your services. Docker-compose works almost the same way as the `docker` command; instead of providing a Dockerfile, you can configure your services by creating the `docker-compose.yml` file. Though in a bit different way, you can configure the same way as in a Dockerfile: mounting volumes, running commands, getting images.
+Docker-compose is another Docker tool which lets us manage multi-container applications. With Docker-compose, it is simpler to manage and scale your services. Docker-compose works almost the same way as the `docker` command; instead of providing a Dockerfile, you can configure your services by creating the `docker-compose.yml` file. Though in a bit different way, you can configure the same way as in a Dockerfile: mounting volumes, running commands, pulling images, etc.
 
 ![services architecture](./images/docker_compose_example.png)
 
-For instance, take a look at the image above. We can define a single Dockerfile for the API, and just use latest images for Mongo and Postgre. Why don't we create Dockerfiles for these? Indeed, you could create a Dockerfile for each of those and configure your DB services with them. However, in this case, we don't need to configure anything, we just need the DBs services running in the respective containers. 
+For instance, take a look at the image above. We can define a single Dockerfile for the API, and define the configs for Mongo just inside the Compose file. Why don't we create Dockerfiles for it? Indeed, you could do so and configure your DB (e.g. create users, roles, priviliges, etc. upon initialization). However, in this case, we don't need to configure anything, we just need the MongoDB service running in the respective container. 
 
 **NOTE:** We would use Dockerfile for the Node.js API service because we have to **build** the app first, i.e. install its dependencies, transpile (if we use Typescript, etc.). This is how Dockerfile for the Node.js would look like:
 
@@ -80,7 +82,7 @@ COPY . /app
 
 So, what have we done? We wrote a sequence of instructions which defines your image. We pulled Node (version 9) from the [Docker Hub](https://docs.docker.com/docker-hub/repos/), created a directory `/app` inside the container, we "told" Docker to work with the `/app` directory, and copied everything (i.e. package.json, src folders, readme, etc.) from the **current folder of the host machine** into the **`/app` folder in the container**. And, ultimately, we ran the `npm install` command inside the container, so we get the dependencies from the package.json installed.
 
-Now, let's create the `docker-compose.yml` file where we will define set the configurations (env variables, volumes, networks, etc.) for the services in our architecture. **Note** that here we are not going to define a Postgre service, just Mongo and Node.js API. Here is an example of how to define these:
+Now, let's create the `docker-compose.yml` file where we will define set the configurations (env variables, volumes, networks, etc.) for the services in our architecture. Here is an example of how to define these:
 
 ```yaml
 version: "3"          # use version Compose version 3
@@ -138,7 +140,7 @@ As there is already some boilerplate code defined in `src/server.ts` file, let's
 
 ```json
 "build": "tsc",   /* Transpile to JS  */
-"start": "npm run build && node ./dist/server.js"  /* Start the server */
+"start": "npm run build && node ./dist/server.js"  /* Build and run the server */
 ```
 
 We also need to create a `tsconfig.json` file that configures the Typescript compiler. More details on TS compilation configurations, check [this link](https://github.com/Microsoft/TypeScript-Node-Starter#typescript-node-starter) out. Here is our example:
@@ -186,7 +188,7 @@ services:             # our services
     command: "npm run start"
 ```
 
-Before running the container, we have to install our dependencies. You may not have Node.js in your computer, or you may have a different version (which may cause you some good ERRs), so let's run a Node container (of latest version) and install our dependencies (do not forget to attach a volume):
+Before running the container, we have to install our dependencies. You may not have Node.js in your computer, or you may have a different version, so let's run a Node container (of latest version) and install our dependencies (do not forget to attach a volume):
 
 ```bash
 docker run -it -v $(pwd):/app node /bin/bash
@@ -279,9 +281,9 @@ And you will see the following message
 
 Yay! Now, as the debugger is listening on `0.0.0.0:9229`, we have to start debugging via VS Code. If you click `CTRL + SHIFT + D` keys, the "debug" mode will open. You will see the "Remote Debugging" slider upper-left corner and the button (looks like green triangle). E.g.:
 
-![debugger view](debugger_view.png)
+![debugger view](./images/debugger_view.png)
 
-Be courageous and click on the green triangle button. Congratulations! You have just started debugging your app using VS Code and Docker containers! It's a long markdown to read; anyway, you learnt something new which will help you a lot debugging your Node.js apps and become a better developer!
+Be courageous and click on the green triangle button. Congratulations! You have just started debugging your app using VS Code and Docker containers! It's a long markdown to read; anyway, you have just learned something new which will help you a lot debugging your Node.js apps and become a better developer!
 
 ![squirrel](https://media.makeameme.org/created/phew-thank-goodness.jpg)
 
