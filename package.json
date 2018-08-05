@@ -4,7 +4,9 @@
   "description": "Let's debug Node inside VS Code using Docker containers",
   "main": "index.js",
   "scripts": {
-    "build-and-start": "tsc && node ./dist/server.js",
+    "build": "tsc",
+    "start": "npm run build && node ./dist/server.js",
+    "debug": "npm run build && node --inspect-brk=0.0.0.0:9229 ./dist/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

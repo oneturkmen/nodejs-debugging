@@ -1,13 +1,5 @@
 # Debugging TypeScript using Docker containers and VSCode
 
-Visual Studio Code (VS Code) has a built-in debugging support for Node.js runtime and can debug any languages that are transpiled to JavaScript.
-
-Since the VS Code Node.js debugger communicates to the Node.js runtimes through wire protocols, the set of supported runtimes is determined by all runtimes supporting the wire protocols:
-
-- **legacy:** the original [V8 Debugger Protocol](https://github.com/buggerjs/bugger-v8-client/blob/master/PROTOCOL.md) which is currently supported by older runtimes.
-- **inspector:** the new [V8 Inspector Protocol](https://chromedevtools.github.io/debugger-protocol-viewer/v8/) is exposed via the `--inspect flag` in Node.js versions >= 6.3. It addresses most of the limitations and scalability issues of the legacy protocol.
-
-
 #### Prerequisites
 
 There are some things that should be installed before we get started:
@@ -124,7 +116,7 @@ For more details on Docker Compose, I would recommend the following [Compose fil
 
 ### Typescript and Node.js
 
-Typescript is a programming language that brings us an optional static type-checking and latest ECMAScript features. By using Typescript, you can leverage the power of OOP, i.e. interfaces, classes, inheritance, polymorphism etc. I would personally recommend to everyone, especially for those who come from the Java/C# side and are just starting out with Javascript. `.ts` files are compiled to `.js` files, meaning that Typescript is compiled to Javascript. So, in the end, you end up with Javascript anyway :)
+Typescript is a programming language that brings us an optional static type-checking and latest ECMAScript features. By using Typescript, you can leverage the power of OOP, i.e. interfaces, classes, inheritance, polymorphism etc. I would personally recommend to everyone, especially to those who come from the Java/C# side and are just starting out with Javascript. `.ts` files are compiled to `.js` files, meaning that Typescript is compiled to Javascript. So, in the end, you end up with Javascript anyway :)
 
 In order to get started with Typescript, we have to install `typescript` module via npm. We can do this by running our Node container again. Do not forget to attach a volume so the change in package.json is actually saved on our host:
 
@@ -145,11 +137,11 @@ exit        # exit the container
 As there is already some boilerplate code defined in `src/server.ts` file, let's change the package.json so that we first compile the code from TS to JS, and then run it! **Make sure you are out of the container.**
 
 ```json
-"build": "tsc src/server.ts",   /* Transpile to JS  */
-"start": "node dist/server.js"  /* Start the server */
+"build": "tsc",   /* Transpile to JS  */
+"start": "npm run build && node ./dist/server.js"  /* Start the server */
 ```
 
-We also need to create a `tsconfig.json` file that configures the Typescript compilers. More details on TS compilation configurations, check [this link](https://github.com/Microsoft/TypeScript-Node-Starter#typescript-node-starter) out. Here is our example:
+We also need to create a `tsconfig.json` file that configures the Typescript compiler. More details on TS compilation configurations, check [this link](https://github.com/Microsoft/TypeScript-Node-Starter#typescript-node-starter) out. Here is our example:
 
 ```json
 {
@@ -191,7 +183,7 @@ services:             # our services
       - .:/app        # bind a current directory of the host to the /app directory in the container
     ports:
       - 3000:3000     # bind port 3000 on host to port 3000 on container
-    command: "npm run build-and-start"
+    command: "npm run start"
 ```
 
 Before running the container, we have to install our dependencies. You may not have Node.js in your computer, or you may have a different version (which may cause you some good ERRs), so let's run a Node container (of latest version) and install our dependencies (do not forget to attach a volume):
@@ -220,16 +212,82 @@ If you see `Listening on port 3000!` message, yay! Open a browser and type `loca
 
 ### Debugging with Virtual Studio Code
 
-Last part! Attaching a debugger...
+Visual Studio Code (VS Code) has a built-in debugging support for Node.js runtime and can debug any languages that are transpiled to JavaScript.
 
-- First, dockerize / docker-compose
-- Second, do npm in container, files locally, put files in the container
-- Third, configure package.json and VS Code remote debugger
+Since the VS Code Node.js debugger communicates to the Node.js runtimes through wire protocols, the set of supported runtimes is determined by all runtimes supporting the wire protocols:
 
+- **legacy:** the original [V8 Debugger Protocol](https://github.com/buggerjs/bugger-v8-client/blob/master/PROTOCOL.md) which is currently supported by older runtimes.
+- **inspector:** the new [V8 Inspector Protocol](https://chromedevtools.github.io/debugger-protocol-viewer/v8/) is exposed via the `--inspect flag` in Node.js versions >= 6.3. It addresses most of the limitations and scalability issues of the legacy protocol.
 
-**1.** Let's initialize our project using `npm init` so we get ```package.json``` created (unless you already have project/app initialized). The ```package.json``` file is the standard file for ```npm``` package management (info about your app, dependencies with respective versions, etc.)
+As we are running a server from a Docker container, we have to attach a *remote* debugger. We need to add a **launch configuration** to the `.vscode` folder, i.e. `launch.json`. Here is an example of the launch configuration file: 
 
-**2.** Unless you have your own Node.js code, check out the [server.ts](./src/server.ts) file in this repo. It basically 
+```json
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "node",
+            "request": "attach",
+            "name": "Remote Debugging",
+            "address": "0.0.0.0",
+            "port": 9229,
+            "localRoot": "${workspaceFolder}/dist",
+            "remoteRoot": "/app/dist",
+            "protocol":"inspector"
+        }
+    ]
+}
+```
+
+We set a *remote root* to be path in the container, where our program lives.
+
+Now, in order to add remote debugging, we have to add another script to package.json:
+
+```json
+"debug": "npm run build && node --inspect-brk=0.0.0.0:9229 ./dist/server.js"
+```
+
+The `debug` script will build (i.e. transpile the TS code) project and will start Node runtime in debugging mode accessible remotely on port `9229` (remember the port we specified above?).
+
+Let's create another Compose file, which we will use for running the server in the debug mode:
+
+```yaml
+version: "3"          # use version Compose version 3
+services:             # our services 
+  api:
+    image: node       # use latest node image
+    working_dir: /app # set the working directory to /app
+    volumes:          # volumes are there to let us persist data when containers are exited
+      - .:/app        # bind a current directory of the host to the /app directory in the container
+    ports:
+      - 3000:3000     # bind port 3000 on host to port 3000 on container
+      - 9229:9229     # bind port 9229 for debugging
+    command: "npm run debug"
+```
+
+The only differences are that we are now running in **debug mode** and we attached extra **port for debugging (9229)**. 
+
+Type the following command in the terminal so you can run the debug server:
+
+```bash
+docker-compose -f docker-compose.debug.yml up
+```
+
+And you will see the following message
+
+> api_1  | Debugger listening on ws://0.0.0.0:9229/f3cdf4f2-4685-21e6-8c31
+
+Yay! Now, as the debugger is listening on `0.0.0.0:9229`, we have to start debugging via VS Code. If you click `CTRL + SHIFT + D` keys, the "debug" mode will open. You will see the "Remote Debugging" slider upper-left corner and the button (looks like green triangle). E.g.:
+
+![debugger view](debugger_view.png)
+
+Be courageous and click on the green triangle button. Congratulations! You have just started debugging your app using VS Code and Docker containers! It's a long markdown to read; anyway, you learnt something new which will help you a lot debugging your Node.js apps and become a better developer!
+
+![squirrel](https://media.makeameme.org/created/phew-thank-goodness.jpg)
+
+Thank you for reading the tutorial! Constructive feedback is always welcome via *issues* on this repo.
+
+**PS.** If something does not work, or if you have any problems, please open an issue in this repo and I will do my best to help you asap.
 
 ### References
 

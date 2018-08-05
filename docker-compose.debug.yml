@@ -7,4 +7,5 @@ services:             # our services
       - .:/app        # bind a current directory of the host to the /app directory in the container
     ports:
       - 3000:3000     # bind port 3000 on host to port 3000 on container
-    command: "npm run start"
+      - 9229:9229     # bind port 9229 for debugging
+    command: "npm run debug"
