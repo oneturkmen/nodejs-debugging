@@ -212,7 +212,7 @@ sudo chown -R $(whoami) nodejs-debugging/  # this gives you and Docker the right
 
 If you see `Listening on port 3000!` message, yay! Open a browser and type `localhost:3000`, and you will see the server is up. You can also try opening the routes, i.e. `/greet` and `/time`.
 
-### Debugging with Virtual Studio Code
+### Debugging with Visual Studio Code
 
 Visual Studio Code (VS Code) has a built-in debugging support for Node.js runtime and can debug any languages that are transpiled to JavaScript.
 
