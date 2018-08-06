@@ -9,7 +9,10 @@
             "port":9229,
             "localRoot": "${workspaceFolder}/dist",
             "remoteRoot": "/app/dist",
-            "protocol":"inspector"
+            "protocol":"inspector",
+            "timeout": 60000,
+            "preLaunchTask": "launch-debug-container",
+            "postDebugTask": "end-debug-container",
         }
     ]
 }

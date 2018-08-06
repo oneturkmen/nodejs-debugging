@@ -283,11 +283,81 @@ Yay! Now, as the debugger is listening on `0.0.0.0:9229`, we have to start debug
 
 ![debugger view](./images/debugger_view.png)
 
-Be courageous and click on the green triangle button. Congratulations! You have just started debugging your app using VS Code and Docker containers! It's a long markdown to read; anyway, you have just learned something new which will help you a lot debugging your Node.js apps and become a better developer!
+Be courageous and click on the green triangle button. Congratulations! You have just started debugging your app using VS Code and Docker containers!
+
+### Bonus round! Simplifying debugging further ...
+
+Launching container manually, and proceeding to *Debug* view on VS Code may be a bit of a daunting and annoying task. However, we can **automate** that and make our lives a bit easier: let's make it so that we can start debugging by just clicking *F5* key! :squirrel:
+
+Let's first create the **tasks** file inside the `.vscode` directory, where our configurations for the VS Code reside. Copy-paste the following into the `tasks.json`:
+
+```json
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "launch-debug-container",
+            "command": "docker-compose -f docker-compose.debug.yml up",
+            "type": "shell",
+            "group": "build",
+            "isBackground": true
+        }
+    ]
+}
+```
+
+Tasks help you automate building and testing your app. Whenever you start debugging, they may help you build your app first. There may be many tasks per launch configuration, so you can automate anything that annoys you and the steps you constantly repeat whenever you start debugging.
+
+In the task above, we label it as "launch-debug-container" and make it execute a command to start the containers specified in the `docker-compose.debug.yml` file.
+
+Now, how do we perform a task when we actually *launch* our debugging? We have to adjust `launch.json` by adding another field in our "Remote Debugging" configuration:
+
+```json
+{
+  /* ... */
+  "preLaunchTask": "launch-debug-container"
+  /* ... */
+}
+```
+
+By giving a *label* from `tasks.json` to the *preLaunchTask* property, our task will be executed first before launching our debugger. **Note** that I also change timeout to 60 seconds (default is 10 sec), as the containers `docker-compose.debug.yml` take some time to start.
+
+In addition, we want our containers to be stopped and removed after the debugging. If you don't want to do so, then you are done! Otherwise, if you don't like the containers still running after you have finished debugging, let's add another task that will execute a command to stop and remove containers after the debugging session.
+
+Add the following to the list of tasks in your `tasks.json`:
+
+```json
+{
+    "label": "end-debug-container",
+    "command": "docker-compose -f docker-compose.debug.yml down",
+    "type": "shell",
+    "group": "build",
+    "isBackground": true
+}
+```
+
+This will turn the containers down whenever you finish the debugging process. Let's also adjust the launch configuration in the `launch.json` by adding a `postDebugTask` property:
+
+```json
+{
+  /* ... */
+  "postDebugTask": "end-debug-container"
+  /* ... */
+}
+```
+
+
+Now is the moment ... Just click *F5* and your debugging starts auto*magically*. If you exit debugging, you will see the containers terminating. Good job!
+
+**Note:** if you are getting `The specified task cannot be tracked` error, click the s*Debug anyway* button and your debugger will start. 
 
 ![squirrel](https://media.makeameme.org/created/phew-thank-goodness.jpg)
 
-Thank you for reading the tutorial! Constructive feedback is always welcome via *issues* on this repo.
+### Thank you + Feedback
+
+Thank you and good job for reading the entire tutorial! It's been a long markdown to read; anyway, you have just learned something new which will help you a lot debugging your Node.js apps and become a better developer!
+
+Constructive feedback is always welcome via *issues* on this repo.
 
 **PS.** If something does not work, or if you have any problems, please open an issue in this repo and I will do my best to help you asap.
 

@@ -1,0 +1,19 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "launch-debug-container",
+            "command": "docker.compose -f docker-compose.debug.yml up",
+            "type": "shell",
+            "group": "build",
+            "isBackground": true
+        },
+        {
+            "label": "end-debug-container",
+            "command": "docker.compose -f docker-compose.debug.yml down",
+            "type": "shell",
+            "group": "build",
+            "isBackground": true
+        }
+    ]
+}
