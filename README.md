@@ -349,7 +349,7 @@ This will turn the containers down whenever you finish the debugging process. Le
 
 Now is the moment ... Just click *F5* and your debugging starts auto*magically*. If you exit debugging, you will see the containers terminating. Good job!
 
-**Note:** if you are getting `The specified task cannot be tracked` error, click the s*Debug anyway* button and your debugger will start. 
+**Note:** if you are getting `The specified task cannot be tracked` error, click the *Debug anyway* button and your debugger will start. 
 
 ![squirrel](https://media.makeameme.org/created/phew-thank-goodness.jpg)
 
