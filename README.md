@@ -70,7 +70,7 @@ RUN mkdir -p /app
 # sets the working directory inside the container (where RUN/CMD commands will be executed)
 WORKDIR /app
 
-# copies everything from the current directory into the /app folder inside the container (COPY <host_dir> <container_dir>)
+# copies package.json from the current directory into the /app folder inside the container
 COPY package.json /app
 
 # runs "npm install" command inside the container
