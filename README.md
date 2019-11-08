@@ -1,6 +1,6 @@
 # Debugging dockerized Node.js app using Typescript and VS Code
 
-The article is now on [Medium](https://medium.com/@oneturkmen/complete-guide-to-debugging-node-js-apps-with-docker-and-vs-code-9850451264c2)!
+Check out the article on [my blog](https://oneturkmen.github.io/2018/08/debugging-nodejs) as well!
 
 #### Prerequisites
 
