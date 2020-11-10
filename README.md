@@ -29,8 +29,6 @@ Docker is a container management service. The keywords of Docker are **develop**
 
 I assume you have latest Docker installed. Docker uses images (check the definition above) to run containers which are, roughly saying, isolated processes that share the same OS kernel. Note that that Docker containers are **NOT** magical, lightweight VMs! If you are interested how Docker Containers work behind the scenes, [here you go! (Talk given by Jérôme Petazzoni at DockerCon EU)](https://www.youtube.com/watch?v=sK5i-N34im8)
 
-![Docker container is not VM](http://cdn.meme.am/instances/53646903.jpg)
-
 Let's initialize our project by using the latest Node.js image. The following command runs an interactive bash terminal, which lets us access the container with Node.js installed in it, and binds a current directory of the host to the `/app` directory in the container, which lets us persist our files (e.g. package.json, etc.).
 
 `docker run -it -v $(pwd):/app node /bin/bash`
